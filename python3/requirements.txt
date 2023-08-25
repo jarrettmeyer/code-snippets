@@ -1,0 +1,4 @@
+jupyterlab==4.0.5
+matplotlib==3.7.2
+numpy==1.25.2
+simpy==4.0.2

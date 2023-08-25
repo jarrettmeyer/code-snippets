@@ -1,0 +1,10 @@
+data/**/*.csv
+data/**/*.pdf
+data/**/*.txt
+
+# Python files
+.ipynb_checkpoints/
+venv/
+
+# Operating system files
+.DS_Store
