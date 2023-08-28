@@ -1,0 +1,57 @@
+---
+title: Simulated Annealing for Continuous Parameter Estimation
+---
+
+```{r libraries, include=FALSE}
+library(GenSA)
+library(ggplot2)
+```
+
+The quantiles given below are taken from [this PubMed article](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3946694/).
+
+```{r}
+df <- data.frame(quantile = c(0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95),
+                 value = c(4.7, 4.8, 5.1, 5.4, 5.7, 6.1, 6.8))
+df
+```
+
+We are going to assume a gamma distribution, since this allows for the skewed nature of this data (mean = 5.6, mode = 5.4).
+
+Create a function that accepts an array of parameters. For a gamma distribution, the parameters are `shape` and `scale`. This function should return the sum squared error of difference between the actual and estimated values. The `GenSA` function will try to minimize this error.
+
+```{r}
+fun <- function (params) {
+  shape <- params[1]
+  scale <- params[2]
+  df$est <- qgamma(df$quantile, shape, scale)
+  df$sq_err <- (df$est - df$value) ^ 2
+  error <- sum(df$sq_err)
+  error
+}
+```
+
+```{r}
+lower_bound <- 1e-6
+upper_bound <- 100
+
+fit <- GenSA(par = c(1, 1), 
+             fn = fun, 
+             lower = c(lower_bound, lower_bound), 
+             upper = c(upper_bound, upper_bound))
+```
+
+This fit yields a gamma distribution with parameters `r fit$par[1]` and `r fit$par[2]`.
+
+We can now plot this result, comparing the estimate to the actual values.
+
+```{r}
+plot_df <- data.frame(x = seq(from = 3.0, to = 10.0, by = 0.01))
+plot_df$y = pgamma(plot_df$x, fit$par[1], fit$par[2])
+
+ggplot() +
+  geom_line(aes(x, y), plot_df, color = "red") +
+  geom_point(aes(value, quantile), df, size = 2, color = "blue") +
+  ggtitle("Actual vs Estimate HbA1c") + 
+  xlab("HbA1c") +
+  ylab("Quantile")
+```
