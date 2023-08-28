@@ -1,53 +1,55 @@
 import random
 import simpy
 
-RANDOM_SEED = 42
-NEW_CUSTOMERS = 5  # Total number of customers
-INTERVAL_CUSTOMERS = 10.0  # Generate new customers roughly every x seconds
-MIN_PATIENCE = 1  # Min. customer patience
-MAX_PATIENCE = 3  # Max. customer patience
+N_CUSTOMERS = 20  # Total number of customers
+MEAN_CUSTOMER_ARRIVAL = 10.0  # Generate new customers roughly every x seconds
+
+n_served = 0
+n_balked = 0
+
+class Customer:
+    def __init__(self, env: simpy.Environment, id: int, mean_patience: float, mean_time_in_bank: float):
+        self.env = env
+        self.id = id
+        self.arrival_time = env.now
+        self.patience = random.expovariate(1.0 / mean_patience)
+        self.time_in_bank = random.expovariate(1.0 / mean_time_in_bank)
+        print(f"{self.arrival_time:7.2f}: {self} arrived")
+
+    def serve(self, counter: simpy.Resource):
+        global n_served, n_balked
+        with counter.request() as request:
+            results = yield request | self.env.timeout(self.patience)
+            wait_time = self.env.now - self.arrival_time
+            if request in results:
+                print(f"{self.env.now:7.2f}: {self} starts being served")
+                yield self.env.timeout(self.time_in_bank)
+                print(f"{self.env.now:7.2f}: {self} finished being served (time in bank: {self.time_in_bank:.2f} minutes)")
+                n_served += 1
+            else:
+                print(f"{self.env.now:7.2f}: {self} balked at after waiting {wait_time:.2f} minutes")
+                n_balked += 1
+
+    def __repr__(self) -> str:
+        return f"Customer {self.id}"
 
 
-def source(env, number, interval, counter):
+def setup(env, number, interval, counter):
     """Source generates customers randomly"""
     for i in range(number):
-        c = customer(env, 'Customer%02d' % i, counter, time_in_bank=12.0)
-        env.process(c)
         t = random.expovariate(1.0 / interval)
         yield env.timeout(t)
-
-
-def customer(env, name, counter, time_in_bank):
-    """Customer arrives, is served and leaves."""
-    arrive = env.now
-    print('%7.4f %s: Here I am' % (arrive, name))
-
-    with counter.request() as req:
-        patience = random.uniform(MIN_PATIENCE, MAX_PATIENCE)
-        # Wait for the counter or abort at the end of our tether
-        results = yield req | env.timeout(patience)
-
-        wait = env.now - arrive
-
-        if req in results:
-            # We got to the counter
-            print('%7.4f %s: Waited %6.3f' % (env.now, name, wait))
-
-            tib = random.expovariate(1.0 / time_in_bank)
-            yield env.timeout(tib)
-            print('%7.4f %s: Finished' % (env.now, name))
-
-        else:
-            # We reneged
-            print('%7.4f %s: RENEGED after %6.3f' % (env.now, name, wait))
-
+        c = Customer(env, i, mean_patience=4.0, mean_time_in_bank=12.0)
+        env.process(c.serve(counter))
 
 # Setup and start the simulation
-print('Bank renege')
-random.seed(RANDOM_SEED)
+print("Starting simulation")
+# random.seed(RANDOM_SEED)
 env = simpy.Environment()
 
 # Start processes and run
 counter = simpy.Resource(env, capacity=1)
-env.process(source(env, NEW_CUSTOMERS, INTERVAL_CUSTOMERS, counter))
+env.process(setup(env, N_CUSTOMERS, MEAN_CUSTOMER_ARRIVAL, counter))
 env.run()
+
+print(f"Total number of customers: {N_CUSTOMERS}, served: {n_served}, balked: {n_balked}")
