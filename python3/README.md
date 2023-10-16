@@ -25,4 +25,9 @@ export JUPYTER_CONFIG_PATH=/opt/homebrew/etc/jupyter
 jupyter notebook
 ```
 
+### List outdated packages
+
+```sh
+pip list --outdated
+```
 

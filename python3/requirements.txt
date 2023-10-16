@@ -1,4 +1,7 @@
-jupyterlab==4.0.5
+jupyterlab==4.0.7
 matplotlib==3.7.2
+notebook==7.0.5
 numpy==1.25.2
+PyAutoGUI==0.9.54
+pyomo==6.6.2
 simpy==4.0.2
