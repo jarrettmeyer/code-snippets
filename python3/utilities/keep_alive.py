@@ -4,8 +4,8 @@ import numpy as np
 import pyautogui
 import time
 
-move_mouse_interval = 30
-move_mouse_duration = 2
+move_mouse_interval = 120
+move_mouse_duration = 1
 circle_radius = 2
 
 def move_mouse_in_circle(radius, duration):
