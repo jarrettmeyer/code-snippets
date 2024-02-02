@@ -9,7 +9,7 @@ move_mouse_duration = 1
 circle_radius = 2
 
 def move_mouse_in_circle(radius, duration):
-    n_ticks = 5
+    n_ticks = 2
     ticks = np.linspace(0, 2*math.pi, n_ticks)
     tick_interval = duration / len(ticks)
 
