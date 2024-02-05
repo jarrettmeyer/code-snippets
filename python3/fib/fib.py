@@ -1,13 +1,20 @@
 import timeit
 
 def fibonacci(n: int) -> int:
+    """Compute the nth value of the Fibonacci sequence."""
+    if n < 0:
+        raise ValueError('n cannot be negative')
+
     if n < 2:
         return n
 
     return fibonacci(n - 1) + fibonacci(n - 2)
 
 
-def fibonacci_with_memo(n: int, memo = {}) -> int:
+def fibonacci_with_memo(n: int, memo: dict[int, int] = {}) -> int:
+    if n < 0:
+        raise ValueError('n cannot be negative')
+
     if n < 2:
         return n
 
@@ -40,7 +47,7 @@ def fibonacci_with_memo_time(n: int, repeat: int):
 
 
 if __name__ == '__main__':
-    n = 42
+    n = 30
     repeat = 1
     fibonacci_time(n, repeat) # ~30 seconds
     fibonacci_with_memo_time(n, repeat) # ~0.00001 seconds
